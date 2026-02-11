@@ -22,7 +22,16 @@ class TestCalculator:
             chrome_options.add_argument('--disable-dev-shm-usage')
             chrome_options.add_argument('--disable-gpu')
             chrome_options.add_argument('--window-size=1920,1080')
-        service = Service(ChromeDriverManager().install())
+
+        #Grace à stackoverflow, j'ai retrouvé l'erreur et corrigé le probleme lié à chrome
+        chrome_install = ChromeDriverManager().install()
+
+        folder = os.path.dirname(chrome_install)
+        chromedriver_path = os.path.join(folder, "chromedriver.exe")
+
+        service = Service(chromedriver_path)
+
+        #service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=chrome_options)
         driver.implicitly_wait(10)
 
@@ -88,12 +97,12 @@ class TestCalculator:
         )
         assert "Erreur: Division par zéro" in result.text
 
-    def test_all_operations(self, driver, operation = []):
+    def test_all_operations(self, driver, operations = []):
         """Test 4: Tester toutes les opérations"""
         file_path = os.path.abspath("../src/index.html")
         driver.get(f"file://{file_path}")
 
-        if not operation :
+        if not operations :
             operations = [
                 ("add", "8", "2", "10"),
                 ("subtract", "8", "2", "6"),
