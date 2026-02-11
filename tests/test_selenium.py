@@ -88,17 +88,18 @@ class TestCalculator:
         )
         assert "Erreur: Division par zéro" in result.text
 
-    def test_all_operations(self, driver):
+    def test_all_operations(self, driver, operation = []):
         """Test 4: Tester toutes les opérations"""
         file_path = os.path.abspath("../src/index.html")
         driver.get(f"file://{file_path}")
 
-        operations = [
-            ("add", "8", "2", "10"),
-            ("subtract", "8", "2", "6"),
-            ("multiply", "8", "2", "16"),
-            ("divide", "8", "2", "4")
-        ]
+        if not operation :
+            operations = [
+                ("add", "8", "2", "10"),
+                ("subtract", "8", "2", "6"),
+                ("multiply", "8", "2", "16"),
+                ("divide", "8", "2", "4")
+            ]
 
         for op, num1, num2, expected in operations:
             # Nettoyer les champs
@@ -123,6 +124,42 @@ class TestCalculator:
             assert f"Résultat: {expected}" in result.text
 
             time.sleep(1)
+
+    def test_page_load_time(self, driver):
+        """Test 5: Mesurer le temps de chargement de la page"""
+        start_time = time.time()
+
+        file_path = os.path.abspath("../src/index.html")
+        driver.get(f"file://{file_path}")
+
+        # Attendre que la page soit complètement chargée
+        WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.ID, "calculator"))
+        )
+
+        load_time = time.time() - start_time
+        print(f"Temps de chargement: {load_time:.2f} secondes")
+
+        # Vérifier que le chargement prend moins de 3 secondes
+        assert load_time < 3.0, f"Page trop lente à charger: {load_time:.2f}s"
+
+    def test_all_operations_float(self, driver) :
+        operations = [
+                ("add", "8.0", "2.2", "10.2"),
+                ("subtract", "8.2", "2.2", "6.0"),
+                ("multiply", "8.25", "2.0", "16.5"),
+                ("divide", "8.6", "2.0", "4.3")
+            ]
+        self.test_all_operations(driver, operations)
+
+    def test_all_operations_negative(self, driver) :
+        operations = [
+                ("add", "-8", "-2", "-10"),
+                ("subtract", "8", "-2", "10"),
+                ("multiply", "-8", "-2", "16"),
+                ("divide", "-8", "2", "-4")
+            ]
+        self.test_all_operations(driver, operations)
 
 if __name__ == "__main__":
     pytest.main(["-v", "--html=report.html", "--self-contained-html"])
